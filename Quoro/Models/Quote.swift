@@ -7,7 +7,12 @@
 
 import Foundation
 
-struct Quote: Decodable {
-  let text: String
-  let author: String?
+struct Quote: Decodable, Sendable, Equatable {
+    let text: String
+    let author: String?
+
+    enum CodingKeys: String, CodingKey {
+        case text = "q"
+        case author = "a"
+    }
 }

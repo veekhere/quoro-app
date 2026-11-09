@@ -7,8 +7,9 @@
 
 import Foundation
 
-struct Constants {
-  struct URLs {
-    static let quotes = URL(string: "https://type.fit/api/quotes")!
-  }
+enum Constants {
+    enum URLs {
+        /// ZenQuotes public feed (≈50 quotes per response).
+        static let quotes = URL(string: "https://zenquotes.io/api/quotes")!
+    }
 }

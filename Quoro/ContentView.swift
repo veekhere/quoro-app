@@ -8,45 +8,69 @@
 import SwiftUI
 
 struct ContentView: View {
-  @StateObject private var viewModel: QuotesViewModel
-  
-  init(viewModel: QuotesViewModel) {
-    self._viewModel = StateObject(wrappedValue: viewModel)
-  }
-  
-    var body: some View {
-      HStack(alignment: .top) {
-        VStack(alignment: .leading) {
-          Text(self.viewModel.quote.text).fontWeight(.bold).multilineTextAlignment(.leading).padding(.all, 12.0).frame(width: nil, height: 130.0).task {
-            await viewModel.giveMeAQuote()
-          }
-          Divider()
-            .padding(.bottom, 5.0)
-          HStack {
-            Text("© \(self.viewModel.quote.author)").fontWeight(.thin).foregroundColor(Color.gray).multilineTextAlignment(.leading).padding([.leading, .bottom], 12.0)
-            Spacer()
-              
-            MenuButton("Menu") {
-              Button("Next quote") {
-                Task {
-                  await viewModel.giveMeAQuote()
-                }
-              }
-              Button("Quit") {
-                NSApp.terminate(self)
-              }
-            }
-            .padding([.bottom, .trailing], 12.0)
-            .frame(width: /*@START_MENU_TOKEN@*/100.0/*@END_MENU_TOKEN@*/)
+    var viewModel: QuotesViewModel
 
-          }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Group {
+                if viewModel.isLoading && viewModel.quote.text.isEmpty {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    Text(viewModel.quote.text)
+                        .fontWeight(.bold)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, minHeight: 130, alignment: .topLeading)
+                }
+            }
+            .padding(12)
+
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
+            }
+
+            Divider()
+                .padding(.bottom, 5)
+
+            HStack {
+                Text("© \(viewModel.quote.author)")
+                    .fontWeight(.thin)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .padding([.leading, .bottom], 12)
+
+                Spacer()
+
+                Menu {
+                    Button("Next quote") {
+                        Task {
+                            await viewModel.giveMeAQuote()
+                        }
+                    }
+                    Divider()
+                    Button("Quit Quoro") {
+                        NSApplication.shared.terminate(nil)
+                    }
+                } label: {
+                    Label("Menu", systemImage: "ellipsis.circle")
+                }
+                .menuStyle(.borderlessButton)
+                .frame(width: 100)
+                .padding([.bottom, .trailing], 12)
+            }
         }
-      }.frame(width: 320)
+        .frame(width: 320)
+        .task {
+            await viewModel.giveMeAQuote()
+        }
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-      ContentView(viewModel: QuotesViewModel())
-    }
+#Preview {
+    ContentView(viewModel: QuotesViewModel())
+        .frame(width: 320, height: 200)
 }
